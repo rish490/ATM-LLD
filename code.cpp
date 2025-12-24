@@ -64,6 +64,20 @@ Design Rationale
 ====================================================================
 */
 
+/*
+============================
+Explanation of Pessimistic Locking
+============================
+1. We use std::mutex in Account for locking critical sections.
+2. Each deposit, withdrawal, or balance read locks the account during the operation.
+3. Ensures that:
+   - Two threads cannot withdraw or deposit at the same time, preventing race conditions.
+   - Balance remains consistent even under concurrent ATM operations.
+4. Banking systems prioritize correctness and consistency over throughput.
+   - Optimistic locking can fail in high-contention scenarios.
+   - Hence, pessimistic locking is preferred for ATM/account operations.
+*/
+
 
 
 
