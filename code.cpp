@@ -107,20 +107,24 @@ private:
     string accountNumber;
     double balance;
     vector<Transaction> transactions;
+    mutable mutex mtx; // Pessimistic lock for thread safety
 
 public:
     Account(string accNum, double bal = 0) : accountNumber(accNum), balance(bal) {}
 
     string getAccountNumber() const { return accountNumber; }
-    double getBalance() const { return balance; }
 
+    // Deposit with thread safety
     void deposit(double amount) {
+        lock_guard<mutex> lock(mtx);  // Pessimistic lock: lock for entire operation
         balance += amount;
         transactions.push_back(Transaction(TransactionType::DEPOSIT, amount));
         cout << "Deposit successful! Balance: $" << balance << endl;
     }
 
+    // Withdraw with thread safety
     bool withdraw(double amount) {
+        lock_guard<mutex> lock(mtx);  // Lock ensures no other operation can modify balance simultaneously
         if (amount > balance) {
             cout << "Insufficient funds!" << endl;
             return false;
@@ -131,7 +135,13 @@ public:
         return true;
     }
 
+    double getBalance() const {
+        lock_guard<mutex> lock(mtx); // Lock ensures reading correct balance
+        return balance;
+    }
+
     void showTransactions() const {
+        lock_guard<mutex> lock(mtx); // Lock ensures consistent transaction history
         if (transactions.empty()) {
             cout << "No transactions yet." << endl;
             return;
